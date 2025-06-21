@@ -10,4 +10,5 @@ dependencies = [
     "lightgbm>=4.6.0",
     "pandas>=2.3.0",
     "pyarrow>=20.0.0",
+    "streamlit>=1.46.0",
 ]
