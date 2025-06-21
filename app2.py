@@ -187,9 +187,9 @@ def main():
             start_station = ruta_a_origen(
                 G, coord_vb, (start_coords.latitude, start_coords.longitude), xs, ys
             )
-            st.write(
-                f"Closest starting Valenbisi station: {start_station['Direccion']} at {start_station['geo_point_2d']}"
-            )
+            # st.write(
+            #     f"Closest starting Valenbisi station: {start_station['Direccion']} at {start_station['geo_point_2d']}"
+            # )
         else:
             st.error("Could not find the start location. Please check the input.")
 
@@ -200,9 +200,9 @@ def main():
             end_station = ruta_a_destino(
                 G, coord_vb, (end_coords.latitude, end_coords.longitude), xs, ys
             )
-            st.write(
-                f"Closest ending Valenbisi station: {end_station['Direccion']} at {end_station['geo_point_2d']}"
-            )
+            # st.write(
+            #     f"Closest ending Valenbisi station: {end_station['Direccion']} at {end_station['geo_point_2d']}"
+            # )
         else:
             st.error("Could not find the end location. Please check the input.")
 
@@ -231,19 +231,23 @@ def main():
 
             folium.Marker(
                 location=[
-                    start_station["geo_point_2d"][0],
-                    start_station["geo_point_2d"][1],
+                    # start_station["geo_point_2d"][0],
+                    # start_station["geo_point_2d"][1],
+                    start_station[0],
+                    start_station[1],
                 ],
-                popup=start_station["Direccion"],
+                # popup=start_station["Direccion"],
                 icon=folium.Icon(color="green", icon="bicycle", prefix="fa"),
             ).add_to(m)
 
             folium.Marker(
                 location=[
-                    end_station["geo_point_2d"][0],
-                    end_station["geo_point_2d"][1],
+                    # end_station["geo_point_2d"][0],
+                    # end_station["geo_point_2d"][1],
+                    end_station[0],
+                    end_station[1],
                 ],
-                popup=end_station["Direccion"],
+                # popup=end_station["Direccion"],
                 icon=folium.Icon(color="orange", icon="bicycle", prefix="fa"),
             ).add_to(m)
 
@@ -251,7 +255,9 @@ def main():
             add_route_line(G, ruta, "green", m)
             add_route_line(G, post_ruta, "red", m)
 
-            st_folium(m, width=700, height=500)
+            col1, col2, col3 = st.columns([1, 6, 1])  # col2 será más ancho, centrado
+            with col2:
+                st_folium(m, use_container_width=True, height=500, returned_objects=[])
     else:
         st.info("Please enter both start and end locations to view the route.")
 
