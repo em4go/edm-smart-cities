@@ -86,9 +86,10 @@ def main():
             st.write(
                 f"Start location coordinates: {start_coords.latitude}, {start_coords.longitude}"
             )
-            start_station = ruta_a_origen(
+            resultados_start = ruta_a_origen(
                 G, coord_vb, (start_coords.latitude, start_coords.longitude), xs, ys
             )
+
             # st.write(
             #     f"Closest starting Valenbisi station: {start_station['Direccion']} at {start_station['geo_point_2d']}"
             # )
@@ -99,7 +100,7 @@ def main():
             st.write(
                 f"End location coordinates: {end_coords.latitude}, {end_coords.longitude}"
             )
-            end_station = ruta_a_destino(
+            resultados_end = ruta_a_destino(
                 G, coord_vb, (end_coords.latitude, end_coords.longitude), xs, ys
             )
             # st.write(

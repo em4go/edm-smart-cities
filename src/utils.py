@@ -62,58 +62,65 @@ def find_closest_point(df, target_coord, coord_col="geo_point_2d"):
 
 def ruta_a_origen(G, coord_vb, origen, xs, ys):
     origen_nodo = ox.nearest_nodes(G, origen[1], origen[0])
+
     # Paso 1: Obtener nodos de coord_vb en bloque
     nodos_vb = ox.nearest_nodes(G, xs, ys)
     coord_nodo_map = dict(zip(nodos_vb, coord_vb))
 
     # Paso 2: Evita nodo origen si está en las coords (lo tratamos aparte si hace falta)
-    nodos_vb_filtrados = set(nodos_vb) - {origen_nodo}
+    nodos_vb_filtrados = set(coord_nodo_map.keys()) - {origen_nodo}
 
     # Paso 3: Calcular rutas desde origen_nodo a todos los nodos posibles
     longitudes = nx.single_source_dijkstra_path_length(G, origen_nodo, weight="length")
 
-    mejor_coord = None
-    longitud_minima = float("inf")
+    resultados = []
 
+    # Paso 4: Añadir coordenadas y longitudes válidas
     for nodo in nodos_vb_filtrados:
-        if nodo in longitudes and longitudes[nodo] < longitud_minima:
-            longitud_minima = longitudes[nodo]
-            mejor_coord = coord_nodo_map[nodo]
+        if nodo in longitudes:
+            coord = coord_nodo_map[nodo]
+            distancia = longitudes[nodo]
+            resultados.append((coord, distancia))
 
-    # Paso 5 (opcional): tratar el caso donde origen ya es uno de los nodos objetivo
+    # Paso 5: Añadir el nodo origen si está en coord_nodo_map
     if origen_nodo in coord_nodo_map:
-        mejor_coord = coord_nodo_map[origen_nodo]
-        longitud_minima = 0
+        resultados.append((coord_nodo_map[origen_nodo], 0))
 
-    return mejor_coord
+    resultados.sort(key=lambda x: x[1])
+
+    return resultados
 
 
 def ruta_a_destino(G, coord_vb, destino, xs, ys):
     destino_nodo = ox.nearest_nodes(G, destino[1], destino[0])
+
     # Paso 1: Obtener nodos de coord_vb vectorizado
     nodos_vb = ox.nearest_nodes(G, xs, ys)
     coord_nodo_map = dict(zip(nodos_vb, coord_vb))
 
-    # Paso 2: Quitar nodo destino (a menos que queramos comprobarlo aparte)
-    nodos_vb_filtrados = set(nodos_vb) - {destino_nodo}
+    # Paso 2: Quitar nodo destino (se añade al final si hace falta)
+    nodos_vb_filtrados = set(coord_nodo_map.keys()) - {destino_nodo}
 
-    # Paso 3: Calcular rutas desde destino_nodo a todos los demás nodos
+    # Paso 3: Calcular rutas desde destino_nodo a todos los nodos posibles
     longitudes = nx.single_source_dijkstra_path_length(G, destino_nodo, weight="length")
 
-    mejor_coord = None
-    longitud_minima = float("inf")
+    resultados = []
 
+    # Paso 4: Añadir coordenadas y longitudes válidas
     for nodo in nodos_vb_filtrados:
-        if nodo in longitudes and longitudes[nodo] < longitud_minima:
-            longitud_minima = longitudes[nodo]
-            mejor_coord = coord_nodo_map[nodo]
+        if nodo in longitudes:
+            coord = coord_nodo_map[nodo]
+            distancia = longitudes[nodo]
+            resultados.append((coord, distancia))
 
-    # Caso especial: el destino está entre las coordenadas
+    # Paso 5: Añadir el nodo destino si está en coord_nodo_map
     if destino_nodo in coord_nodo_map:
-        mejor_coord = coord_nodo_map[destino_nodo]
-        longitud_minima = 0
+        resultados.append((coord_nodo_map[destino_nodo], 0))
 
-    return mejor_coord
+    # Paso 6: Ordenar por distancia ascendente
+    resultados.sort(key=lambda x: x[1])
+
+    return resultados
 
 
 def crear_ruta(G, coord_vb, origen, destino, xs, ys):
