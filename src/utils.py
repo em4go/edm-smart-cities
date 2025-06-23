@@ -7,7 +7,7 @@ import networkx as nx
 
 
 def geocode_location(location_name):
-    geolocator = Nominatim(user_agent="valencia-bike-route-app")
+    geolocator = Nominatim(user_agent="valencia-bike-route-app (group 1 edm)")
     try:
         location_name = location_name.strip() + ", Valencia, Spain"
         location = geolocator.geocode(location_name, exactly_one=True)
