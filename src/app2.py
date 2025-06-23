@@ -119,6 +119,14 @@ def main():
             & (preds["Hour"] == start_hour)
             & (preds["Minute"] >= start_minute)
         ].nsmallest(273, "Minute")
+        while filtered_preds is None:
+            start_hour = (start_hour + 1) % 24
+            start_minute = 0
+            filtered_preds = preds[
+                (preds["Date"] == start_day)
+                & (preds["Hour"] == start_hour)
+                & (preds["Minute"] >= start_minute)
+            ].nsmallest(273, "Minute")
 
         start_coords = cached_geocode(start_location)
         end_coords = cached_geocode(end_location)
