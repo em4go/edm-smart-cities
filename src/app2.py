@@ -2,7 +2,9 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
+import os
 import osmnx as ox
+import pickle
 from utils import (
     geocode_location,
     haversine,
@@ -14,26 +16,63 @@ from utils import (
 )
 import networkx as nx
 
+# ──────────────────────────────────────────────
+# 1. Valenbisi puntos
+# ──────────────────────────────────────────────
+@st.cache_data  # ← se guarda el DataFrame tal cual
+def load_valenbisi():
+    df = pd.read_csv("data/valenbici_puntos.csv")
+    # Mantenemos exactamente tu transformación con eval
+    df["geo_point_2d"] = df["geo_point_2d"].apply(lambda x: eval(x))
+    return df
 
-def main():
-    valenbisi = pd.read_csv("data/valenbici_puntos.csv")
-    valenbisi["geo_point_2d"] = valenbisi["geo_point_2d"].apply(lambda x: eval(x))
-
+# ──────────────────────────────────────────────
+# 2. Predicciones 2025
+# ──────────────────────────────────────────────
+@st.cache_data
+def load_predictions():
     preds = pd.read_parquet("data/valenbici_predictions_2025.parquet")
-
     preds["24h_time"] = preds[["Hour", "Minute"]].apply(
         lambda x: f"{x['Hour']:02d}:{x['Minute']:02d}", axis=1
     )
     preds["Date"] = preds[["Month", "Day"]].apply(
         lambda x: f"{x['Month']:02d}-{x['Day']:02d}", axis=1
     )
+    return preds
+
+GRAPH_PATH = "data/valencia_bike_graph.gpickle"
+
+# ──────────────────────────────────────────────
+#  carga del grafo con doble capa de caché
+# ──────────────────────────────────────────────
+@st.cache_resource
+def load_graph():
+    """
+    Devuelve el grafo de carriles bici de Valencia.
+
+    • Si existe el .pkl  → lo carga con pickle.load  
+    • Si no existe      → lo descarga con OSMnx, lo guarda con pickle.dump
+    """
+    if os.path.exists(GRAPH_PATH):
+        with open(GRAPH_PATH, "rb") as f:
+            G = pickle.load(f)
+    else:
+        G = ox.graph_from_point(
+            (39.4699, -0.3763), dist=5_000, network_type="bike", simplify=False
+        )
+        with open(GRAPH_PATH, "wb") as f:
+            # Highest protocol = binario, compacto y rápido (requiere Py ≥ 3.8)
+            pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
+    return G
+
+def main():
+    valenbisi = load_valenbisi()
+    preds = load_predictions()
+    G = load_graph()
 
     possible_dates = preds["Date"].unique()
 
     coord_vb = set(valenbisi["geo_point_2d"].unique())
-    G = ox.graph_from_point(
-        (39.4699, -0.3763), dist=5000, network_type="bike", simplify=False
-    )
     xs = [coord[1] for coord in coord_vb]
     ys = [coord[0] for coord in coord_vb]
 

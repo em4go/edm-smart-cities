@@ -7,19 +7,14 @@ import networkx as nx
 
 
 def geocode_location(location_name, key):
-    if key not in st.session_state or st.session_state[key + "_name"] != location_name:
-        geolocator = Nominatim(user_agent="valencia-bike-route-app")
-        try:
-            location = geolocator.geocode(location_name, exactly_one=True)
-            if location:
-                st.session_state[key] = location
-                st.session_state[key + "_name"] = location_name
-            else:
-                st.session_state[key] = None
-        except Exception as e:
-            st.session_state[key] = None
-            st.error(f"Error during geocoding '{location_name}': {e}")
-    return st.session_state[key]
+    geolocator = Nominatim(user_agent="valencia-bike-route-app")
+    try:
+        location_name = location_name.strip() + ", Valencia, Spain"
+        location = geolocator.geocode(location_name, exactly_one=True)
+    except Exception as e:
+        st.error(f"Error during geocoding '{location_name}': {e}")
+        return None
+    return location
 
 
 def haversine(coord1, coord2):
