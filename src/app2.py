@@ -29,9 +29,9 @@ def main():
 
     possible_dates = preds["Date"].unique()
 
-    coord_vb = {x for x in valenbisi["geo_point_2d"]}
+    coord_vb = set(valenbisi["geo_point_2d"].unique())
     G = ox.graph_from_point(
-        (39.4699, -0.3763), dist=3000, network_type="bike", simplify=True
+        (39.4699, -0.3763), dist=5000, network_type="bike", simplify=False
     )
     xs = [coord[1] for coord in coord_vb]
     ys = [coord[0] for coord in coord_vb]
