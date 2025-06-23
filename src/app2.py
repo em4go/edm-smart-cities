@@ -116,8 +116,8 @@ def main():
             & (preds["Minute"] >= start_minute)
         ].nsmallest(273, "Minute")
 
-        start_coords = geocode_location(start_location, "start")
-        end_coords = geocode_location(end_location, "end")
+        start_coords = geocode_location(start_location)
+        end_coords = geocode_location(end_location)
 
         if start_coords:
             st.write(

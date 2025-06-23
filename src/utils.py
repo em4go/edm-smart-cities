@@ -6,7 +6,7 @@ import osmnx as ox
 import networkx as nx
 
 
-def geocode_location(location_name, key):
+def geocode_location(location_name):
     geolocator = Nominatim(user_agent="valencia-bike-route-app")
     try:
         location_name = location_name.strip() + ", Valencia, Spain"
