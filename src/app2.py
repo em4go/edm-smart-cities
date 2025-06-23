@@ -65,6 +65,10 @@ def load_graph():
             pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
     return G
 
+@st.cache_data(show_spinner=False, ttl=86_400)  # 1 día
+def cached_geocode(address):
+    return geocode_location(address)
+
 def main():
     valenbisi = load_valenbisi()
     preds = load_predictions()
@@ -116,8 +120,8 @@ def main():
             & (preds["Minute"] >= start_minute)
         ].nsmallest(273, "Minute")
 
-        start_coords = geocode_location(start_location)
-        end_coords = geocode_location(end_location)
+        start_coords = cached_geocode(start_location)
+        end_coords = cached_geocode(end_location)
 
         if start_coords:
             st.write(
