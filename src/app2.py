@@ -12,6 +12,7 @@ from utils import (
     crear_ruta,
     add_route_line,
 )
+import networkx as nx
 
 
 def main():
@@ -90,9 +91,21 @@ def main():
                 G, coord_vb, (start_coords.latitude, start_coords.longitude), xs, ys
             )
 
-            # st.write(
-            #     f"Closest starting Valenbisi station: {start_station['Direccion']} at {start_station['geo_point_2d']}"
-            # )
+            for coord, distance in resultados_start:
+                # get row from filtered_preds where geo_point_2d matches coord
+
+                start_station = filtered_preds[
+                    filtered_preds["geo_point_2d"].apply(
+                        lambda x: (x[0], x[1]) == coord
+                    )
+                ].iloc[0]
+
+                if start_station["bikes_pred_low"] > 1:
+                    st.write(
+                        f"Closest starting Valenbisi station: {start_station['Direccion']} at {coord}"
+                    )
+                    initial = start_station["geo_point_2d"]
+                    break
         else:
             st.error("Could not find the start location. Please check the input.")
 
@@ -103,21 +116,67 @@ def main():
             resultados_end = ruta_a_destino(
                 G, coord_vb, (end_coords.latitude, end_coords.longitude), xs, ys
             )
-            # st.write(
-            #     f"Closest ending Valenbisi station: {end_station['Direccion']} at {end_station['geo_point_2d']}"
-            # )
+            for coord, distance in resultados_end:
+                end_station = filtered_preds[
+                    filtered_preds["geo_point_2d"].apply(
+                        lambda x: (x[0], x[1]) == coord
+                    )
+                ].iloc[0]
+
+                if end_station["bikes_pred_up"] < end_station["Espacios_totales"] - 1:
+                    st.write(
+                        f"Closest ending Valenbisi station: {end_station['Direccion']} at {coord}"
+                    )
+                    final = end_station["geo_point_2d"]
+                    break
         else:
             st.error("Could not find the end location. Please check the input.")
 
         if start_coords and end_coords:
-            pre_ruta, ruta, post_ruta = crear_ruta(
-                G,
-                coord_vb,
-                (start_coords.latitude, start_coords.longitude),
-                (end_coords.latitude, end_coords.longitude),
-                xs,
-                ys,
+            # pre_ruta, ruta, post_ruta = crear_ruta(
+            #     G,
+            #     coord_vb,
+            #     (start_coords.latitude, start_coords.longitude),
+            #     (end_coords.latitude, end_coords.longitude),
+            #     xs,
+            #     ys,
+            # )
+
+            origen_nodo = ox.nearest_nodes(
+                G, start_coords.latitude, start_coords.longitude
             )
+            destino_nodo = ox.nearest_nodes(
+                G, start_coords.latitude, start_coords.longitude
+            )
+
+            est_origen_nodo = ox.nearest_nodes(
+                G,
+                initial[1],
+                initial[0],
+            )
+            est_destino_nodo = ox.nearest_nodes(
+                G,
+                final[1],
+                final[0],
+            )
+
+            st.write(initial[0], initial[1])
+            st.write(final[0], final[1])
+
+            pre_ruta = nx.shortest_path(
+                G, origen_nodo, est_origen_nodo, weight="length"
+            )
+            ruta = nx.shortest_path(
+                G, est_origen_nodo, est_destino_nodo, weight="length"
+            )
+            post_ruta = nx.shortest_path(
+                G, est_destino_nodo, destino_nodo, weight="length"
+            )
+
+            st.write("Pre-route:", pre_ruta)
+            st.write("Route:", ruta)
+            st.write("Post-route:", post_ruta)
+
             st.subheader("Route Preview (placeholder)")
             m = folium.Map(location=[39.4699, -0.3763], zoom_start=13)
             folium.Marker(
@@ -134,10 +193,10 @@ def main():
 
             folium.Marker(
                 location=[
-                    # start_station["geo_point_2d"][0],
-                    # start_station["geo_point_2d"][1],
-                    start_station[0],
-                    start_station[1],
+                    start_station["geo_point_2d"][0],
+                    start_station["geo_point_2d"][1],
+                    # start_station[0],
+                    # start_station[1],
                 ],
                 # popup=start_station["Direccion"],
                 icon=folium.Icon(color="green", icon="bicycle", prefix="fa"),
@@ -145,10 +204,10 @@ def main():
 
             folium.Marker(
                 location=[
-                    # end_station["geo_point_2d"][0],
-                    # end_station["geo_point_2d"][1],
-                    end_station[0],
-                    end_station[1],
+                    end_station["geo_point_2d"][0],
+                    end_station["geo_point_2d"][1],
+                    # end_station[0],
+                    # end_station[1],
                 ],
                 # popup=end_station["Direccion"],
                 icon=folium.Icon(color="orange", icon="bicycle", prefix="fa"),
