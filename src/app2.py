@@ -92,8 +92,6 @@ def main():
             )
 
             for coord, distance in resultados_start:
-                # get row from filtered_preds where geo_point_2d matches coord
-
                 start_station = filtered_preds[
                     filtered_preds["geo_point_2d"].apply(
                         lambda x: (x[0], x[1]) == coord
@@ -104,7 +102,7 @@ def main():
                     st.write(
                         f"Closest starting Valenbisi station: {start_station['Direccion']} at {coord}"
                     )
-                    initial = start_station["geo_point_2d"]
+                    est_origen = coord
                     break
         else:
             st.error("Could not find the start location. Please check the input.")
@@ -127,7 +125,7 @@ def main():
                     st.write(
                         f"Closest ending Valenbisi station: {end_station['Direccion']} at {coord}"
                     )
-                    final = end_station["geo_point_2d"]
+                    est_destino = coord
                     break
         else:
             st.error("Could not find the end location. Please check the input.")
@@ -143,25 +141,14 @@ def main():
             # )
 
             origen_nodo = ox.nearest_nodes(
-                G, start_coords.latitude, start_coords.longitude
+                G, start_coords.longitude, start_coords.latitude
             )
             destino_nodo = ox.nearest_nodes(
-                G, start_coords.latitude, start_coords.longitude
+                G, end_coords.longitude, end_coords.latitude
             )
 
-            est_origen_nodo = ox.nearest_nodes(
-                G,
-                initial[1],
-                initial[0],
-            )
-            est_destino_nodo = ox.nearest_nodes(
-                G,
-                final[1],
-                final[0],
-            )
-
-            st.write(initial[0], initial[1])
-            st.write(final[0], final[1])
+            est_origen_nodo = ox.nearest_nodes(G, est_origen[1], est_origen[0])
+            est_destino_nodo = ox.nearest_nodes(G, est_destino[1], est_destino[0])
 
             pre_ruta = nx.shortest_path(
                 G, origen_nodo, est_origen_nodo, weight="length"
@@ -172,10 +159,6 @@ def main():
             post_ruta = nx.shortest_path(
                 G, est_destino_nodo, destino_nodo, weight="length"
             )
-
-            st.write("Pre-route:", pre_ruta)
-            st.write("Route:", ruta)
-            st.write("Post-route:", post_ruta)
 
             st.subheader("Route Preview (placeholder)")
             m = folium.Map(location=[39.4699, -0.3763], zoom_start=13)
