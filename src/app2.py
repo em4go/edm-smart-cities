@@ -77,9 +77,6 @@ def main():
             & (preds["Minute"] >= start_minute)
         ].nsmallest(273, "Minute")
 
-        # show df
-        st.dataframe(filtered_preds)
-
         start_coords = geocode_location(start_location, "start")
         end_coords = geocode_location(end_location, "end")
 
@@ -100,7 +97,7 @@ def main():
 
                 if start_station["bikes_pred_low"] > 1:
                     st.write(
-                        f"Closest starting Valenbisi station: {start_station['Direccion']} at {coord}"
+                        f"Closest starting Valenbisi station: {start_station['Direccion']}"
                     )
                     est_origen = coord
                     break
@@ -123,7 +120,7 @@ def main():
 
                 if end_station["bikes_pred_up"] < end_station["Espacios_totales"] - 1:
                     st.write(
-                        f"Closest ending Valenbisi station: {end_station['Direccion']} at {coord}"
+                        f"Closest ending Valenbisi station: {end_station['Direccion']}"
                     )
                     est_destino = coord
                     break
@@ -181,7 +178,7 @@ def main():
                     # start_station[0],
                     # start_station[1],
                 ],
-                # popup=start_station["Direccion"],
+                popup=start_station["Direccion"],
                 icon=folium.Icon(color="green", icon="bicycle", prefix="fa"),
             ).add_to(m)
 
@@ -192,7 +189,7 @@ def main():
                     # end_station[0],
                     # end_station[1],
                 ],
-                # popup=end_station["Direccion"],
+                popup=end_station["Direccion"],
                 icon=folium.Icon(color="orange", icon="bicycle", prefix="fa"),
             ).add_to(m)
 

@@ -6,8 +6,6 @@ dist/
 wheels/
 *.egg-info
 extracted_2025/
-valenbici/
-valenbici*
 
 # Virtual environments
 .venv
